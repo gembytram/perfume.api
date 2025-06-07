@@ -570,11 +570,8 @@ export const getProductsGroupedByCategory = async (req, res) => {
 // [GET] /api/guest/product/byCategory
 export const getCategoriesWithRandomProducts = async (req, res, next) => {
   try {
-    console.log("API getCategoriesWithRandomProducts được gọi!");
-
     // Lấy danh sách danh mục kèm theo hình ảnh
     const categories = await Category.find({}, "_id category_name category_img");
-    console.log("Danh mục lấy được:", categories);
 
     if (!categories || categories.length === 0) {
       console.log("Không tìm thấy danh mục nào!");
@@ -590,10 +587,6 @@ export const getCategoriesWithRandomProducts = async (req, res, next) => {
             ? category._id
             : new mongoose.Types.ObjectId(category._id);
 
-          console.log(
-            `Đang lấy sản phẩm cho danh mục ${category.category_name} (ID: ${categoryId})`
-          );
-
           // Truy vấn sản phẩm
           const products = await Product.aggregate([
             { $match: { category_id: categoryId } },
@@ -601,6 +594,7 @@ export const getCategoriesWithRandomProducts = async (req, res, next) => {
             {
               $project: {
                 _id: 1,
+                product_id_hashed: { $toString: "$_id" },
                 product_name: 1,
                 product_slug: 1,
                 product_imgs: { $ifNull: [{ $arrayElemAt: ["$product_imgs", 0] }, ""] }, // Lấy ảnh đầu tiên
@@ -636,12 +630,15 @@ export const getCategoriesWithRandomProducts = async (req, res, next) => {
             },
           ]);
 
-          console.log(`Sản phẩm lấy được cho danh mục ${category.category_name}:`, products);
+          const processedProducts = products.map((product) => ({
+            ...product,
+            product_id_hashed: encryptData(product.product_id_hashed),
+          }));
 
           return {
             category_name: category.category_name,
-            category_img: category.category_img, // Lấy hình ảnh danh mục
-            products,
+            category_img: category.category_img,
+            products: processedProducts,
           };
         } catch (error) {
           console.error(`Lỗi khi xử lý danh mục ${category.category_name}:`, error);
@@ -654,7 +651,6 @@ export const getCategoriesWithRandomProducts = async (req, res, next) => {
       })
     );
 
-    console.log("Kết quả trả về:", categoryWithProducts);
     return ok(res, { categories: categoryWithProducts });
   } catch (err) {
     console.error("Lỗi khi lấy danh mục và sản phẩm:", err);

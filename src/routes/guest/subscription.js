@@ -29,7 +29,7 @@ router.post("/", async (req, res) => {
     });
 
     await transporter.sendMail({
-      from: `"Cocoon" <${process.env.EMAIL_USERNAME}>`,
+      from: `"Fleurs" <${process.env.EMAIL_USERNAME}>`,
       to: email,
       subject: "Cảm ơn bạn đã đăng ký nhận thông tin",
       html: `
@@ -37,7 +37,7 @@ router.post("/", async (req, res) => {
         <p>Cảm ơn bạn đã đăng ký nhận thông tin từ chúng tôi.</p>
         <p>Hẹn gặp lại bạn trong các email sắp tới!</p>
         <br/>
-        <p>Thân mến,<br/>Đội ngũ Cocoon</p>
+        <p>Thân mến,<br/>Đội ngũ Fleurs</p>
       `,
     });
 
